@@ -111,9 +111,10 @@ global.getClassName = function getClassName(obj)
 	if (!obj)
 		return;
 
-	//from function info, but not standard
-	if(obj.name)
-		return obj.name;
+	//from function info, but not standard. checking constructors for TypedArray, used in GL.Buffer.toJSON
+	let name = obj.name || (obj.constructor && obj.constructor.name);
+	if(name)
+		return name;
 
 	//from sourcecode
 	if(obj.toString) {
