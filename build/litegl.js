@@ -327,9 +327,10 @@ global.getClassName = function getClassName(obj)
 	if (!obj)
 		return;
 
-	//from function info, but not standard
-	if(obj.name)
-		return obj.name;
+	//from function info, but not standard. checking constructors for TypedArray, used in GL.Buffer.toJSON
+	let name = obj.name || (obj.constructor && obj.constructor.name);
+	if(name)
+		return name;
 
 	//from sourcecode
 	if(obj.toString) {
@@ -5838,10 +5839,13 @@ Texture.prototype.hasSameSize = function(t)
 		return false;
 	return t.width == this.width && t.height == this.height;
 }
-//textures cannot be stored in JSON
+
 Texture.prototype.toJSON = function()
 {
-	return "";
+	let o = this.getProperties();
+	o.b64Data = this.toBase64();
+	o.no_flip = true;
+	return o;
 }
 
 
@@ -6796,6 +6800,19 @@ Texture.fromURL = function( url, options, on_complete, gl ) {
 
 	return texture;
 };
+
+/**
+ * Loads and uploads a texture from a url
+ * @method Texture.fromJSON
+ * @param {Object} data - from Texture.toJSOn
+ * @param {Function} on_complete
+ * @return gl - context
+ */
+Texture.fromJSON = function (data, on_complete, gl) {
+	if (!data) return null;
+	gl = gl || global.gl;
+	return GL.Texture.fromURL(data.b64Data, data, on_complete, gl)
+}
 
 Texture.parseTGA = function(data)
 {
